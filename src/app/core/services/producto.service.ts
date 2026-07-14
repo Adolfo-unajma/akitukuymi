@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Producto } from '../models';
+import { assertEscritura } from '../solo-lectura';
 import { CATEGORIAS_DEMO, PRODUCTOS_DEMO } from '../data/demo-data';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
@@ -83,6 +84,7 @@ export class ProductoService {
   }
 
   async guardar(producto: Partial<Producto>): Promise<void> {
+    assertEscritura();
     // La relación embebida no se envía a la tabla
     const { categoria: _cat, ...datos } = producto;
     if (this.sb.habilitado) {
@@ -118,6 +120,7 @@ export class ProductoService {
   }
 
   async eliminar(id: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.from('productos').delete().eq('id', id);
       if (error) throw new Error('No se pudo eliminar el producto');
@@ -149,6 +152,7 @@ export class ProductoService {
 
   /** Sube una imagen y devuelve su URL pública (en demo: data URL local) */
   async subirImagen(archivo: File): Promise<string> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const ruta = `productos/${Date.now()}-${archivo.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`;
       const { error } = await this.sb.client.storage.from('imagenes').upload(ruta, archivo);

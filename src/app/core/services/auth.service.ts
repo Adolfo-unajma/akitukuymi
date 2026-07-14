@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Perfil } from '../models';
 import { USUARIOS_DEMO, UsuarioDemo } from '../data/demo-data';
+import { assertEscritura } from '../solo-lectura';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
 
@@ -127,6 +128,7 @@ export class AuthService {
   }
 
   async registrar(datos: DatosRegistro): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.auth.signUp({
         email: datos.email,
@@ -186,6 +188,7 @@ export class AuthService {
   }
 
   async actualizarPerfil(cambios: Partial<Perfil>): Promise<void> {
+    assertEscritura();
     const actual = this.usuario();
     if (!actual) throw new Error('No hay sesión activa');
 

@@ -9,6 +9,7 @@ import {
   precioVenta,
 } from '../models';
 import { USUARIOS_DEMO } from '../data/demo-data';
+import { assertEscritura } from '../solo-lectura';
 import { DemoDbService } from './demo-db.service';
 import { ProductoService, leerComoDataUrl } from './producto.service';
 import { SupabaseService } from './supabase.service';
@@ -32,6 +33,7 @@ export class PedidoService {
   }
 
   async crear(datos: DatosNuevoPedido): Promise<Pedido> {
+    assertEscritura();
     const total = datos.items.reduce(
       (acc, i) => acc + precioVenta(i.producto) * i.cantidad,
       0,
@@ -123,6 +125,7 @@ export class PedidoService {
     archivo: File,
     numeroOperacion: string,
   ): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const ruta = `comprobantes/${pedidoId}-${Date.now()}.${archivo.name.split('.').pop()}`;
       const { error: errorSubida } = await this.sb.client.storage
@@ -217,6 +220,7 @@ export class PedidoService {
   }
 
   async cambiarEstado(pedidoId: string, estado: EstadoPedido, notas?: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client
         .from('pedidos')

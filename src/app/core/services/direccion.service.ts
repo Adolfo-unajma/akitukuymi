@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { DireccionEnvio } from '../models';
+import { assertEscritura } from '../solo-lectura';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
 
@@ -25,6 +26,7 @@ export class DireccionService {
   }
 
   async guardar(direccion: Partial<DireccionEnvio> & { usuario_id: string }): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = direccion.id
         ? await this.sb.client.from('direcciones_envio').update(direccion).eq('id', direccion.id)
@@ -56,6 +58,7 @@ export class DireccionService {
   }
 
   async marcarPredeterminada(id: string, usuarioId: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       await this.sb.client
         .from('direcciones_envio')
@@ -79,6 +82,7 @@ export class DireccionService {
   }
 
   async eliminar(id: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.from('direcciones_envio').delete().eq('id', id);
       if (error) throw new Error('No se pudo eliminar la dirección');

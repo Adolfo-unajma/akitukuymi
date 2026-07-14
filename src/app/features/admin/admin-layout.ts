@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { esSoloLectura } from '../../core/solo-lectura';
 import { AuthService } from '../../core/services/auth.service';
 import { Logo } from '../../shared/components/logo';
 
@@ -92,9 +93,30 @@ import { Logo } from '../../shared/components/logo';
           <p class="text-sm text-stone-500">
             Hola, <b class="text-stone-800">{{ auth.usuario()?.nombre }}</b>
           </p>
+
+          @if (soloLectura) {
+            <span
+              class="ml-auto flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+            >
+              <lucide-icon name="eye" [size]="13" />
+              Modo demostración · solo lectura
+            </span>
+          }
         </header>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8">
+          @if (soloLectura) {
+            <div
+              class="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+            >
+              <lucide-icon name="info" [size]="18" class="mt-0.5 shrink-0" />
+              <p>
+                Estás viendo el panel en <b>modo demostración</b>. Puedes navegar y revisar
+                todo, pero los cambios (crear, editar, eliminar o cambiar estados) están
+                desactivados temporalmente.
+              </p>
+            </div>
+          }
           <router-outlet />
         </main>
       </div>
@@ -104,6 +126,7 @@ import { Logo } from '../../shared/components/logo';
 export class AdminLayout {
   readonly auth = inject(AuthService);
   readonly menuAbierto = signal(false);
+  readonly soloLectura = esSoloLectura();
 
   readonly enlaces = [
     { texto: 'Dashboard', ruta: '/admin', icono: 'layout-dashboard', exacto: true },

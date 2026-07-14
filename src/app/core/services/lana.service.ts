@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Lana } from '../models';
+import { assertEscritura } from '../solo-lectura';
 import { LANAS_DEMO } from '../data/demo-data';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
@@ -32,6 +33,7 @@ export class LanaService {
   }
 
   async guardar(lana: Partial<Lana>): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = lana.id
         ? await this.sb.client.from('lanas').update(lana).eq('id', lana.id)
@@ -62,6 +64,7 @@ export class LanaService {
   }
 
   async eliminar(id: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.from('lanas').delete().eq('id', id);
       if (error) throw new Error('No se pudo eliminar la lana');

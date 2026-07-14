@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Categoria } from '../models';
+import { assertEscritura } from '../solo-lectura';
 import { CATEGORIAS_DEMO, PRODUCTOS_DEMO } from '../data/demo-data';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
@@ -49,6 +50,7 @@ export class CategoriaService {
   }
 
   async guardar(categoria: Partial<Categoria>): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = categoria.id
         ? await this.sb.client.from('categorias').update(categoria).eq('id', categoria.id)
@@ -78,6 +80,7 @@ export class CategoriaService {
   }
 
   async eliminar(id: string): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.from('categorias').delete().eq('id', id);
       if (error) throw new Error('No se pudo eliminar (verifica que no tenga productos)');

@@ -9,6 +9,14 @@ export const environment = {
   production: false,
   appName: 'Akitukuymi',
 
+  /**
+   * MODO DEMOSTRACIÓN (solo lectura). Con `true`, cualquiera puede navegar,
+   * iniciar sesión y probar el chatbot, pero NO puede crear, editar ni borrar
+   * nada (ni desde el panel admin). Para reactivar la edición, ponlo en `false`
+   * Y ejecuta el SQL de `supabase/modo-solo-lectura.sql` (sección "REACTIVAR").
+   */
+  soloLectura: true,
+
   supabase: {
     url: 'https://zrbiyzcyfvsaagffvtpy.supabase.co',
     anonKey: 'sb_publishable_q6I_G5r3co9c9aH4bwej3A_FmCbzuci',

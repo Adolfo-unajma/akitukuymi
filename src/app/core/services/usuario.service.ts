@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Perfil, RolUsuario } from '../models';
+import { assertEscritura } from '../solo-lectura';
 import { USUARIOS_DEMO, UsuarioDemo } from '../data/demo-data';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
@@ -25,6 +26,7 @@ export class UsuarioService {
   }
 
   async cambiarRol(usuarioId: string, rol: RolUsuario): Promise<void> {
+    assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.from('perfiles').update({ rol }).eq('id', usuarioId);
       if (error) throw new Error('No se pudo cambiar el rol');
