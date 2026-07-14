@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { DemoDbService } from './demo-db.service';
@@ -39,12 +39,15 @@ export class ChatbotService {
     if (this.conectado) {
       try {
         const respuesta = await firstValueFrom(
-          this.http.post<Record<string, string>>(environment.n8n.chatWebhookUrl, {
-            sessionId: this.sessionId,
-            action: 'sendMessage',
-            chatInput: mensaje,
-            metadata: this.metadata,
-          }),
+          this.http
+            .post<Record<string, string>>(environment.n8n.chatWebhookUrl, {
+              sessionId: this.sessionId,
+              action: 'sendMessage',
+              chatInput: mensaje,
+              metadata: this.metadata,
+            })
+            // El asistente consulta el catálogo antes de responder: puede tardar
+            .pipe(timeout(45_000)),
         );
         return (
           respuesta?.['output'] ??
@@ -53,7 +56,7 @@ export class ChatbotService {
           'Lo siento, no pude procesar tu mensaje.'
         );
       } catch {
-        return 'Ocurrió un problema al conectar con el asistente. Inténtalo de nuevo.';
+        return 'No pude responderte en este momento. Vuelve a intentarlo o escríbenos por WhatsApp al 977 477 674 para atenderte de inmediato.';
       }
     }
     return this.respuestaDemo(mensaje);

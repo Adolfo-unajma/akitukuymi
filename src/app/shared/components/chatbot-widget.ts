@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { ChatbotService } from '../../core/services/chatbot.service';
@@ -42,7 +42,7 @@ interface MensajeChat {
           </button>
         </div>
 
-        <div class="flex-1 space-y-3 overflow-y-auto bg-cream-50 p-4">
+        <div #hilo class="flex-1 space-y-3 overflow-y-auto bg-cream-50 p-4">
           @for (m of mensajes(); track $index) {
             <div [class]="m.de === 'usuario' ? 'flex justify-end' : 'flex justify-start'">
               <p
@@ -60,9 +60,14 @@ interface MensajeChat {
           @if (escribiendo()) {
             <div class="flex justify-start">
               <p
-                class="rounded-2xl rounded-bl-sm border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-400"
+                class="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-stone-200 bg-white px-3.5 py-3"
               >
-                Escribiendo…
+                @for (punto of [0, 1, 2]; track punto) {
+                  <span
+                    class="h-2 w-2 animate-bounce rounded-full bg-clay-400"
+                    [style.animation-delay.ms]="punto * 150"
+                  ></span>
+                }
               </p>
             </div>
           }
@@ -105,6 +110,7 @@ interface MensajeChat {
 })
 export class ChatbotWidget {
   readonly chatbot = inject(ChatbotService);
+  private readonly hilo = viewChild<ElementRef<HTMLElement>>('hilo');
 
   readonly abierto = signal(false);
   readonly escribiendo = signal(false);
@@ -126,8 +132,19 @@ export class ChatbotWidget {
     this.borrador = '';
     this.mensajes.update((m) => [...m, { de: 'usuario', texto }]);
     this.escribiendo.set(true);
+    this.bajarAlFinal();
+
     const respuesta = await this.chatbot.enviar(texto);
     this.mensajes.update((m) => [...m, { de: 'bot', texto: respuesta }]);
     this.escribiendo.set(false);
+    this.bajarAlFinal();
+  }
+
+  /** Mantiene la conversación siempre visible en el último mensaje */
+  private bajarAlFinal(): void {
+    setTimeout(() => {
+      const el = this.hilo()?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
   }
 }
