@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/fraunces';
+
+@theme {
+  --font-sans: 'Outfit Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+
+  /* Terracota / arcilla — color principal de la marca */
+  --color-clay-50: #fdf6f3;
+  --color-clay-100: #fbe9e2;
+  --color-clay-200: #f7d2c3;
+  --color-clay-300: #f0b09a;
+  --color-clay-400: #e58363;
+  --color-clay-500: #d75f3c;
+  --color-clay-600: #c34a2a;
+  --color-clay-700: #a33a22;
+  --color-clay-800: #863221;
+  --color-clay-900: #6f2d20;
+  --color-clay-950: #3c150d;
+
+  /* Crema / lana natural — fondos cálidos */
+  --color-cream-50: #fcfaf6;
+  --color-cream-100: #f8f3ea;
+  --color-cream-200: #f0e6d5;
+  --color-cream-300: #e5d4b8;
+
+  /* Verde andino — acento secundario */
+  --color-andes-100: #d9efe9;
+  --color-andes-500: #2f7d6d;
+  --color-andes-600: #256657;
+  --color-andes-700: #1f5347;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream-50 font-sans text-stone-800 antialiased;
+  }
+  ::selection {
+    @apply bg-clay-200 text-clay-900;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-clay-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-clay-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-andes-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-andes-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-andes-600 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-outline {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-clay-400 hover:text-clay-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-600 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-800 placeholder-stone-400 transition focus:border-clay-500 focus:ring-2 focus:ring-clay-200 focus:outline-none disabled:bg-stone-100;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-stone-700;
+  }
+  .error-text {
+    @apply mt-1 text-xs text-red-600;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200/70 bg-white shadow-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+}
