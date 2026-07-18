@@ -10,10 +10,11 @@ import { CategoriaService } from '../../core/services/categoria.service';
 import { LanaService } from '../../core/services/lana.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { ProductoCard } from '../../shared/components/producto-card';
+import { ProductoSkeleton } from '../../shared/components/producto-skeleton';
 
 @Component({
   selector: 'app-home',
-  imports: [CurrencyPipe, RouterLink, LucideAngularModule, NgIcon, ProductoCard],
+  imports: [CurrencyPipe, RouterLink, LucideAngularModule, NgIcon, ProductoCard, ProductoSkeleton],
   providers: [provideIcons({ tablerBrandWhatsapp })],
   template: `
     <!-- ═══════════════ HERO ═══════════════ -->
@@ -28,23 +29,23 @@ import { ProductoCard } from '../../shared/components/producto-card';
       <div class="container-app relative grid items-center gap-12 py-14 lg:grid-cols-2 lg:py-20">
         <div>
           <p
-            class="badge mb-5 border border-clay-200 bg-clay-50 !px-3 !py-1.5 text-clay-700"
+            class="badge aparecer mb-5 border border-clay-200 bg-clay-50 !px-3 !py-1.5 text-clay-700"
           >
             <lucide-icon name="heart" [size]="13" />
             Hecho a mano en Perú
           </p>
           <h1
-            class="font-display text-4xl leading-tight font-bold text-stone-900 sm:text-5xl lg:text-6xl"
+            class="text-hero aparecer-1 font-display font-bold text-balance text-stone-900"
           >
             Tejidos con historia,<br />
             <span class="text-clay-600">hechos con amor</span>
           </h1>
-          <p class="mt-5 max-w-lg text-lg text-stone-600">
+          <p class="aparecer-2 mt-5 max-w-lg text-lg text-pretty text-stone-600">
             Chompas, gorros, amigurumis, mantas y ramos que nunca se marchitan.
             Cada pieza es única, tejida a mano con lana de calidad.
           </p>
 
-          <div class="mt-8 flex flex-wrap gap-3">
+          <div class="aparecer-3 mt-8 flex flex-wrap gap-3">
             <a routerLink="/catalogo" class="btn-primary !px-7 !py-3 !text-base">
               Ver catálogo
               <lucide-icon name="arrow-right" [size]="18" />
@@ -76,12 +77,12 @@ import { ProductoCard } from '../../shared/components/producto-card';
           </ul>
         </div>
 
-        <div class="relative mx-auto w-full max-w-md lg:max-w-none">
+        <div class="aparecer-2 relative mx-auto w-full max-w-md lg:max-w-none">
           <img
             src="/img/ofertas/ramos.jpg"
             alt="Ramo de flores tejidas a mano"
             fetchpriority="high"
-            class="aspect-[4/5] w-full rounded-3xl object-cover shadow-2xl"
+            class="aspect-[4/5] w-full rounded-3xl object-cover shadow-2xl shadow-clay-900/10"
           />
           <img
             src="/img/productos/amigurumis.jpeg"
@@ -123,18 +124,27 @@ import { ProductoCard } from '../../shared/components/producto-card';
           <a
             [routerLink]="['/catalogo']"
             [queryParams]="{ categoria: cat.id }"
-            class="group relative block overflow-hidden rounded-2xl"
+            class="group relative block overflow-hidden rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-clay-900/10"
           >
             <img
               [src]="cat.imagen_url || '/img/productos/categorias.jpg'"
               [alt]="cat.nombre"
               loading="lazy"
-              class="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-110"
+              class="aspect-[4/5] w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-110"
             />
             <div
               class="absolute inset-0 bg-gradient-to-t from-stone-900/80 via-stone-900/10 to-transparent"
             ></div>
-            <p class="absolute bottom-3 left-3 font-semibold text-white">{{ cat.nombre }}</p>
+            <p
+              class="font-display absolute bottom-3 left-3 flex items-center gap-1 font-semibold text-white"
+            >
+              {{ cat.nombre }}
+              <lucide-icon
+                name="arrow-right"
+                [size]="15"
+                class="-translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+              />
+            </p>
           </a>
         } @empty {
           @for (i of [1, 2, 3, 4, 5, 6]; track i) {
@@ -164,7 +174,7 @@ import { ProductoCard } from '../../shared/components/producto-card';
             <app-producto-card [producto]="producto" />
           } @empty {
             @for (i of [1, 2, 3, 4]; track i) {
-              <div class="aspect-[3/4] animate-pulse rounded-2xl bg-stone-200"></div>
+              <app-producto-skeleton />
             }
           }
         </div>

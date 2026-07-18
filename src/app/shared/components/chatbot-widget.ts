@@ -20,15 +20,18 @@ interface MensajeChat {
     <!-- Panel -->
     @if (abierto()) {
       <div
-        class="card fixed right-4 bottom-24 z-[60] flex h-[28rem] w-80 max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-2xl"
+        class="panel-chat card fixed right-4 bottom-24 z-[60] flex h-[30rem] max-h-[calc(100vh-8rem)] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-2xl shadow-clay-900/20"
       >
-        <div class="flex items-center gap-3 bg-clay-700 px-4 py-3 text-white">
+        <div
+          class="flex items-center gap-3 bg-gradient-to-br from-clay-600 to-clay-800 px-4 py-3.5 text-white"
+        >
           <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
             <lucide-icon name="bot" [size]="20" />
           </span>
           <div class="flex-1">
-            <p class="text-sm font-semibold">Asistente Akitukuymi</p>
-            <p class="text-[11px] text-white/70">
+            <p class="font-display text-sm font-semibold">Asistente Akitukuymi</p>
+            <p class="flex items-center gap-1.5 text-[11px] text-white/75">
+              <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
               {{ chatbot.conectado ? 'En línea' : 'Modo demo' }}
             </p>
           </div>
@@ -44,13 +47,16 @@ interface MensajeChat {
 
         <div #hilo class="flex-1 space-y-3 overflow-y-auto bg-cream-50 p-4">
           @for (m of mensajes(); track $index) {
-            <div [class]="m.de === 'usuario' ? 'flex justify-end' : 'flex justify-start'">
+            <div
+              class="burbuja flex"
+              [class]="m.de === 'usuario' ? 'justify-end' : 'justify-start'"
+            >
               <p
-                class="max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed"
+                class="max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed shadow-sm"
                 [class]="
                   m.de === 'usuario'
-                    ? 'rounded-br-sm bg-clay-600 text-white'
-                    : 'rounded-bl-sm border border-stone-200 bg-white text-stone-700'
+                    ? 'rounded-br-md bg-clay-600 text-white'
+                    : 'rounded-bl-md border border-stone-200/80 bg-white text-stone-700'
                 "
               >
                 {{ m.texto }}
@@ -101,11 +107,55 @@ interface MensajeChat {
     <button
       type="button"
       (click)="alternar()"
-      class="fixed right-4 bottom-6 z-[60] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-clay-600 text-white shadow-xl transition hover:scale-105 hover:bg-clay-700"
+      class="group fixed right-4 bottom-6 z-[60] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-clay-600 text-white shadow-xl shadow-clay-900/25 transition-all duration-300 hover:scale-105 hover:bg-clay-700 active:scale-95"
       aria-label="Abrir chat de ayuda"
     >
-      <lucide-icon [name]="abierto() ? 'x' : 'message-circle'" [size]="24" />
+      @if (!abierto()) {
+        <span
+          class="absolute inset-0 animate-ping rounded-full bg-clay-500/40 [animation-duration:2.5s]"
+        ></span>
+      }
+      <lucide-icon
+        [name]="abierto() ? 'x' : 'message-circle'"
+        [size]="24"
+        class="relative transition-transform duration-300 group-hover:scale-110"
+      />
     </button>
+  `,
+  styles: `
+    @keyframes panel-entra {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    .panel-chat {
+      animation: panel-entra 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-origin: bottom right;
+    }
+    @keyframes burbuja-entra {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    .burbuja {
+      animation: burbuja-entra 0.25s ease-out;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .panel-chat,
+      .burbuja {
+        animation: none;
+      }
+    }
   `,
 })
 export class ChatbotWidget {

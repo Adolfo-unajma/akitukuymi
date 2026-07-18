@@ -11,56 +11,61 @@ import { EstadoBadge } from '../../shared/components/estado-badge';
   selector: 'app-dashboard',
   imports: [CurrencyPipe, DatePipe, RouterLink, LucideAngularModule, EstadoBadge],
   template: `
-    <h1 class="font-display mb-6 text-2xl font-bold text-stone-900">Dashboard</h1>
+    <h1 class="font-display mb-6 text-2xl font-bold text-stone-900 sm:text-3xl">Dashboard</h1>
 
     <!-- Tarjetas de resumen -->
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="card p-5">
+      <div class="card p-5 transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between">
           <p class="text-sm text-stone-500">Ventas confirmadas</p>
           <span class="rounded-xl bg-andes-100 p-2 text-andes-700">
             <lucide-icon name="banknote" [size]="18" />
           </span>
         </div>
-        <p class="mt-2 text-2xl font-bold text-stone-900">
+        <p class="font-display mt-2 text-3xl font-bold text-stone-900">
           {{ totalVentas() | currency: 'PEN' : 'S/ ' }}
         </p>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-5 transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between">
           <p class="text-sm text-stone-500">Pagos por verificar</p>
           <span class="rounded-xl bg-sky-100 p-2 text-sky-700">
             <lucide-icon name="qr-code" [size]="18" />
           </span>
         </div>
-        <p class="mt-2 text-2xl font-bold text-stone-900">{{ porVerificar() }}</p>
+        <p class="font-display mt-2 text-3xl font-bold text-stone-900">{{ porVerificar() }}</p>
         <a
           routerLink="/admin/pedidos"
-          class="flex items-center gap-1 text-xs font-medium text-clay-700 hover:underline"
+          class="group mt-1 flex items-center gap-1 text-xs font-medium text-clay-700 hover:underline"
         >
-          Revisar ahora <lucide-icon name="arrow-right" [size]="12" />
+          Revisar ahora
+          <lucide-icon
+            name="arrow-right"
+            [size]="12"
+            class="transition-transform group-hover:translate-x-0.5"
+          />
         </a>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-5 transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between">
           <p class="text-sm text-stone-500">Pedidos en proceso</p>
           <span class="rounded-xl bg-violet-100 p-2 text-violet-700">
             <lucide-icon name="truck" [size]="18" />
           </span>
         </div>
-        <p class="mt-2 text-2xl font-bold text-stone-900">{{ enProceso() }}</p>
+        <p class="font-display mt-2 text-3xl font-bold text-stone-900">{{ enProceso() }}</p>
       </div>
 
-      <div class="card p-5">
+      <div class="card p-5 transition-shadow hover:shadow-md">
         <div class="flex items-center justify-between">
           <p class="text-sm text-stone-500">Stock bajo (≤ 3)</p>
           <span class="rounded-xl bg-red-100 p-2 text-red-700">
             <lucide-icon name="triangle-alert" [size]="18" />
           </span>
         </div>
-        <p class="mt-2 text-2xl font-bold text-stone-900">{{ stockBajo().length }}</p>
+        <p class="font-display mt-2 text-3xl font-bold text-stone-900">{{ stockBajo().length }}</p>
       </div>
     </div>
 

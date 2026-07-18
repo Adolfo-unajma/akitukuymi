@@ -29,33 +29,39 @@ import { Spinner } from '../../shared/components/spinner';
           <span class="text-stone-800">{{ p.nombre }}</span>
         </nav>
 
-        <div class="grid gap-10 lg:grid-cols-2">
-          <div class="relative overflow-hidden rounded-3xl">
+        <div class="grid gap-10 lg:grid-cols-2 lg:gap-14">
+          <div
+            class="group relative aspect-square overflow-hidden rounded-3xl bg-cream-100 shadow-sm lg:sticky lg:top-24"
+          >
             <img
               [src]="p.imagen_url || '/img/productos/categorias.jpg'"
               [alt]="p.nombre"
-              class="aspect-square w-full object-cover"
+              class="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-105"
             />
             @if (p.precio_oferta) {
-              <span class="badge absolute top-4 left-4 bg-clay-600 !px-3 !py-1.5 text-white">
+              <span class="badge absolute top-4 left-4 bg-clay-600 !px-3 !py-1.5 text-white shadow-sm">
                 <lucide-icon name="sparkles" [size]="14" />
                 En oferta
               </span>
             }
           </div>
 
-          <div>
+          <div class="lg:py-2">
             @if (p.categoria; as cat) {
-              <span class="text-sm font-semibold tracking-wide text-andes-600 uppercase">
+              <span
+                class="badge border border-andes-100 bg-andes-100/50 !px-3 text-andes-700"
+              >
                 {{ cat.nombre }}
               </span>
             }
-            <h1 class="font-display mt-1 text-3xl font-bold text-stone-900 sm:text-4xl">
+            <h1
+              class="font-display mt-3 text-3xl leading-tight font-bold text-balance text-stone-900 sm:text-4xl lg:text-5xl"
+            >
               {{ p.nombre }}
             </h1>
 
-            <div class="mt-4 flex items-baseline gap-3">
-              <span class="text-3xl font-bold text-clay-700">
+            <div class="mt-5 flex items-baseline gap-3">
+              <span class="font-display text-4xl font-bold text-clay-700">
                 {{ precioFinal(p) | currency: 'PEN' : 'S/ ' }}
               </span>
               @if (p.precio_oferta) {
@@ -77,7 +83,7 @@ import { Spinner } from '../../shared/components/spinner';
               </p>
             }
 
-            <p class="mt-5 leading-relaxed text-stone-600">
+            <p class="mt-5 max-w-prose leading-relaxed text-pretty text-stone-600">
               {{ p.descripcion || 'Pieza tejida a mano con lana de calidad.' }}
             </p>
 

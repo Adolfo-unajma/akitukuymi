@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,9 +18,17 @@ import { Logo } from './logo';
     </div>
 
     <header
-      class="sticky top-0 z-50 border-b border-stone-200/70 bg-cream-50/90 backdrop-blur-md"
+      class="sticky top-0 z-50 border-b backdrop-blur-md transition-all duration-300"
+      [class]="
+        desplazado()
+          ? 'border-stone-200/70 bg-cream-50/85 shadow-sm shadow-stone-900/5'
+          : 'border-transparent bg-cream-50/60'
+      "
     >
-      <nav class="container-app flex h-16 items-center justify-between gap-4">
+      <nav
+        class="container-app flex items-center justify-between gap-4 transition-all duration-300"
+        [class]="desplazado() ? 'h-14' : 'h-16'"
+      >
         <a routerLink="/" aria-label="Ir al inicio" (click)="cerrarMenus()">
           <app-logo />
         </a>
@@ -175,6 +183,12 @@ export class Navbar {
 
   readonly menuUsuario = signal(false);
   readonly menuMovil = signal(false);
+  readonly desplazado = signal(false);
+
+  @HostListener('window:scroll')
+  alDesplazar(): void {
+    this.desplazado.set(window.scrollY > 8);
+  }
 
   readonly enlaces = [
     { texto: 'Inicio', ruta: '/', params: {}, exacto: true },

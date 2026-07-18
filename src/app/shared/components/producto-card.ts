@@ -10,44 +10,52 @@ import { ToastService } from '../../core/services/toast.service';
   selector: 'app-producto-card',
   imports: [CurrencyPipe, RouterLink, LucideAngularModule],
   template: `
-    <article
-      class="card group flex h-full flex-col overflow-hidden transition hover:-translate-y-1 hover:shadow-lg"
-    >
-      <a [routerLink]="['/catalogo', producto().id]" class="relative block overflow-hidden">
+    <article class="card card-hover group flex h-full flex-col overflow-hidden">
+      <a
+        [routerLink]="['/catalogo', producto().id]"
+        class="relative block overflow-hidden bg-cream-100"
+      >
         <img
           [src]="producto().imagen_url || '/img/productos/categorias.jpg'"
           [alt]="producto().nombre"
           loading="lazy"
-          class="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
+          class="aspect-square w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06]"
         />
+        <div
+          class="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-900/15 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        ></div>
         @if (producto().precio_oferta) {
-          <span class="badge absolute top-3 left-3 bg-clay-600 text-white shadow">
+          <span class="badge absolute top-3 left-3 bg-clay-600 text-white shadow-sm">
             <lucide-icon name="sparkles" [size]="12" />
             Oferta
           </span>
         }
         @if (producto().stock === 0) {
-          <span class="badge absolute top-3 right-3 bg-stone-800/90 text-white">Agotado</span>
+          <span
+            class="badge absolute inset-x-0 bottom-0 justify-center rounded-none bg-stone-800/85 py-1.5 text-white backdrop-blur-sm"
+          >
+            Agotado
+          </span>
         }
       </a>
 
-      <div class="flex flex-1 flex-col gap-1 p-4">
+      <div class="flex flex-1 flex-col p-4">
         @if (producto().categoria; as cat) {
-          <span class="text-xs font-medium tracking-wide text-andes-600 uppercase">
+          <span class="mb-1 text-[11px] font-semibold tracking-wider text-andes-600 uppercase">
             {{ cat.nombre }}
           </span>
         }
         <a
           [routerLink]="['/catalogo', producto().id]"
-          class="font-display font-semibold text-stone-800 hover:text-clay-700"
+          class="font-display leading-snug font-semibold text-stone-800 transition-colors group-hover:text-clay-700"
         >
           {{ producto().nombre }}
         </a>
 
-        <div class="mt-auto flex items-end justify-between pt-3">
-          <div>
+        <div class="mt-auto flex items-end justify-between pt-4">
+          <div class="flex flex-col">
             @if (producto().precio_oferta) {
-              <span class="mr-1.5 text-sm text-stone-400 line-through">
+              <span class="text-xs text-stone-400 line-through">
                 {{ producto().precio | currency: 'PEN' : 'S/ ' }}
               </span>
             }
@@ -59,7 +67,7 @@ import { ToastService } from '../../core/services/toast.service';
             type="button"
             (click)="agregar()"
             [disabled]="producto().stock === 0"
-            class="btn-primary !p-2.5"
+            class="btn-primary !p-2.5 transition-transform group-hover:scale-105"
             [attr.aria-label]="'Agregar ' + producto().nombre + ' al carrito'"
           >
             <lucide-icon name="shopping-cart" [size]="17" />

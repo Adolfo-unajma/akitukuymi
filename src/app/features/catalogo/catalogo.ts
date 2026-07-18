@@ -6,13 +6,13 @@ import { Categoria, Producto, precioVenta } from '../../core/models';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { ProductoCard } from '../../shared/components/producto-card';
-import { Spinner } from '../../shared/components/spinner';
+import { ProductoSkeleton } from '../../shared/components/producto-skeleton';
 
 type Orden = 'recientes' | 'precio_asc' | 'precio_desc';
 
 @Component({
   selector: 'app-catalogo',
-  imports: [FormsModule, LucideAngularModule, ProductoCard, Spinner],
+  imports: [FormsModule, LucideAngularModule, ProductoCard, ProductoSkeleton],
   template: `
     <div class="container-app py-10">
       <header class="mb-8">
@@ -96,7 +96,11 @@ type Orden = 'recientes' | 'precio_asc' | 'precio_desc';
           </div>
 
           @if (cargando()) {
-            <app-spinner mensaje="Cargando productos…" />
+            <div class="grid grid-cols-2 gap-4 sm:gap-6 xl:grid-cols-3">
+              @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                <app-producto-skeleton />
+              }
+            </div>
           } @else if (ordenados().length === 0) {
             <div class="card flex flex-col items-center gap-3 p-12 text-center">
               <lucide-icon name="search" [size]="40" class="text-stone-300" />
