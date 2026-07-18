@@ -53,16 +53,29 @@ export class MascotaComponent {
   constructor() {
     // Monta React únicamente en el cliente
     afterNextRender(async () => {
-      const [{ createElement }, { createRoot }, mod] = await Promise.all([
-        import('react'),
-        import('react-dom/client'),
-        import('./AKITUKUYMI_Mascot'),
-      ]);
-      this.createElement = createElement as never;
-      this.Mascot = mod.AKITUKUYMI_Mascot;
-      this.root = createRoot(this.host().nativeElement);
-      this.listo.set(true);
-      this.pintar();
+      try {
+        const [reactMod, clientMod, mod] = await Promise.all([
+          import('react'),
+          import('react-dom/client'),
+          import('./AKITUKUYMI_Mascot'),
+        ]);
+        // Interop CJS/ESM: las funciones pueden estar directas o bajo `default`
+        const react = reactMod as unknown as Record<string, unknown>;
+        const client = clientMod as unknown as Record<string, unknown>;
+        const createElement = (react['createElement'] ??
+          (react['default'] as Record<string, unknown>)?.['createElement']) as never;
+        const createRoot = (client['createRoot'] ??
+          (client['default'] as Record<string, unknown>)?.['createRoot']) as (
+          el: Element,
+        ) => Root;
+        this.createElement = createElement;
+        this.Mascot = mod.AKITUKUYMI_Mascot;
+        this.root = createRoot(this.host().nativeElement);
+        this.listo.set(true);
+        this.pintar();
+      } catch (e) {
+        console.error('No se pudo montar la mascota:', e);
+      }
     });
 
     // Re-renderiza al cambiar el estado

@@ -28,9 +28,9 @@ interface MensajeChat {
           class="flex items-center gap-3 bg-gradient-to-br from-clay-600 to-clay-800 px-4 py-3.5 text-white"
         >
           <span
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15"
+            class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/90 ring-1 ring-white/40"
           >
-            <app-mascota [estado]="estadoMascota()" [px]="42" />
+            <app-mascota [estado]="estadoMascota()" [px]="40" />
           </span>
           <div class="flex-1">
             <p class="font-display text-sm font-semibold">Asistente Akitukuymi</p>
@@ -112,7 +112,7 @@ interface MensajeChat {
     <button
       type="button"
       (click)="alternar()"
-      class="group fixed right-4 bottom-6 z-[60] flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-cream-100 to-cream-200 shadow-xl shadow-clay-900/25 ring-1 ring-clay-200/60 transition-all duration-300 hover:scale-105 active:scale-95"
+      class="group fixed right-4 bottom-6 z-[60] flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-white shadow-xl shadow-clay-900/25 ring-1 ring-clay-200/70 transition-all duration-300 hover:scale-105 hover:ring-clay-300 active:scale-95"
       [attr.aria-label]="abierto() ? 'Cerrar chat de ayuda' : 'Abrir chat de ayuda'"
     >
       @if (!abierto()) {
