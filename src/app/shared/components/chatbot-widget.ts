@@ -1,7 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { ChatbotService } from '../../core/services/chatbot.service';
+import { MascotaComponent } from '../mascota/mascota.component';
+import type { MascotState } from '../mascota/types';
 
 interface MensajeChat {
   de: 'usuario' | 'bot';
@@ -15,7 +17,7 @@ interface MensajeChat {
  */
 @Component({
   selector: 'app-chatbot-widget',
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, MascotaComponent],
   template: `
     <!-- Panel -->
     @if (abierto()) {
@@ -25,8 +27,10 @@ interface MensajeChat {
         <div
           class="flex items-center gap-3 bg-gradient-to-br from-clay-600 to-clay-800 px-4 py-3.5 text-white"
         >
-          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-            <lucide-icon name="bot" [size]="20" />
+          <span
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15"
+          >
+            <app-mascota [estado]="estadoMascota()" [px]="42" />
           </span>
           <div class="flex-1">
             <p class="font-display text-sm font-semibold">Asistente Akitukuymi</p>
@@ -87,6 +91,7 @@ interface MensajeChat {
             type="text"
             name="mensaje"
             [(ngModel)]="borrador"
+            (ngModelChange)="alTeclear()"
             placeholder="Escribe tu consulta…"
             autocomplete="off"
             class="input !rounded-full !py-2"
@@ -103,23 +108,25 @@ interface MensajeChat {
       </div>
     }
 
-    <!-- Botón flotante -->
+    <!-- Botón flotante: la mascota es la identidad del chat -->
     <button
       type="button"
       (click)="alternar()"
-      class="group fixed right-4 bottom-6 z-[60] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-clay-600 text-white shadow-xl shadow-clay-900/25 transition-all duration-300 hover:scale-105 hover:bg-clay-700 active:scale-95"
-      aria-label="Abrir chat de ayuda"
+      class="group fixed right-4 bottom-6 z-[60] flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-cream-100 to-cream-200 shadow-xl shadow-clay-900/25 ring-1 ring-clay-200/60 transition-all duration-300 hover:scale-105 active:scale-95"
+      [attr.aria-label]="abierto() ? 'Cerrar chat de ayuda' : 'Abrir chat de ayuda'"
     >
       @if (!abierto()) {
         <span
-          class="absolute inset-0 animate-ping rounded-full bg-clay-500/40 [animation-duration:2.5s]"
+          class="absolute inset-0 animate-ping rounded-full bg-clay-400/25 [animation-duration:2.8s]"
         ></span>
+        <app-mascota [estado]="estadoMascota()" [px]="58" />
+      } @else {
+        <lucide-icon
+          name="x"
+          [size]="24"
+          class="relative text-clay-700 transition-transform duration-300 group-hover:scale-110"
+        />
       }
-      <lucide-icon
-        [name]="abierto() ? 'x' : 'message-circle'"
-        [size]="24"
-        class="relative transition-transform duration-300 group-hover:scale-110"
-      />
     </button>
   `,
   styles: `
@@ -172,14 +179,50 @@ export class ChatbotWidget {
   ]);
   borrador = '';
 
+  /** Estado del chatbot que dirige la mascota */
+  private readonly saludando = signal(false);
+  private readonly hablando = signal(false);
+  private readonly escribiendoUsuario = signal(false);
+
+  /** Mapea la lógica del chat → estado de la mascota */
+  readonly estadoMascota = computed<MascotState>(() => {
+    if (this.saludando()) return 'happy';
+    if (this.escribiendo()) return 'thinking';
+    if (this.hablando()) return 'talking';
+    if (this.escribiendoUsuario()) return 'listening';
+    return 'idle';
+  });
+
+  private saludoTimer?: ReturnType<typeof setTimeout>;
+  private hablaTimer?: ReturnType<typeof setTimeout>;
+  private tecleoTimer?: ReturnType<typeof setTimeout>;
+
   alternar(): void {
-    this.abierto.set(!this.abierto());
+    const abriendo = !this.abierto();
+    this.abierto.set(abriendo);
+    if (abriendo) this.reaccionar();
+  }
+
+  /** Pequeña reacción alegre al abrir o tocar la mascota */
+  private reaccionar(): void {
+    this.saludando.set(true);
+    clearTimeout(this.saludoTimer);
+    this.saludoTimer = setTimeout(() => this.saludando.set(false), 1800);
+  }
+
+  /** El usuario está escribiendo → la mascota presta atención */
+  alTeclear(): void {
+    if (this.escribiendo()) return;
+    this.escribiendoUsuario.set(true);
+    clearTimeout(this.tecleoTimer);
+    this.tecleoTimer = setTimeout(() => this.escribiendoUsuario.set(false), 1500);
   }
 
   async enviar(): Promise<void> {
     const texto = this.borrador.trim();
     if (!texto || this.escribiendo()) return;
     this.borrador = '';
+    this.escribiendoUsuario.set(false);
     this.mensajes.update((m) => [...m, { de: 'usuario', texto }]);
     this.escribiendo.set(true);
     this.bajarAlFinal();
@@ -188,6 +231,12 @@ export class ChatbotWidget {
     this.mensajes.update((m) => [...m, { de: 'bot', texto: respuesta }]);
     this.escribiendo.set(false);
     this.bajarAlFinal();
+
+    // La mascota "habla" un momento proporcional a la respuesta
+    this.hablando.set(true);
+    clearTimeout(this.hablaTimer);
+    const ms = Math.min(6000, 1500 + respuesta.length * 25);
+    this.hablaTimer = setTimeout(() => this.hablando.set(false), ms);
   }
 
   /** Mantiene la conversación siempre visible en el último mensaje */
