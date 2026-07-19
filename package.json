@@ -12,7 +12,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:akitukuymi": "node dist/akitukuymi/server/server.mjs",
-    "postinstall": "node .guardian/env-to-env.js 2>/dev/null; node .guardian/scripts/analytics.js 2>/dev/null; true",
+    "postinstall": "node .guardian/scripts/analytics.js 2>/dev/null; true",
     "security:register": "node .guardian/scripts/analytics.js"
   },
   "dependencies": {
