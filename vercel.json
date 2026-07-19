@@ -1,0 +1,15 @@
+{
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/akitukuymi/browser",
+  "installCommand": "pnpm install",
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": "dist/akitukuymi/server/**",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api?__path=/$1" }
+  ]
+}
