@@ -51,8 +51,7 @@ Thumbs.db
 # ── Seguridad: solo local ─────────────────────────────────────────────────
 .supabase/
 .docs/
-.cache-lock
-.cache-node-id
+.angular/cache/
 .session-cache
 .session-store
 
