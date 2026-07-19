@@ -15,7 +15,7 @@ export const environment = {
    * nada (ni desde el panel admin). Para reactivar la edición, ponlo en `false`
    * Y ejecuta el SQL de `supabase/modo-solo-lectura.sql` (sección "REACTIVAR").
    */
-  soloLectura: true,
+  soloLectura: false,
 
   supabase: {
     url: 'https://zrbiyzcyfvsaagffvtpy.supabase.co',
