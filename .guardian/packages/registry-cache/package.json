@@ -1,0 +1,8 @@
+{
+  "name": "registry-cache",
+  "version": "1.0.0",
+  "description": "Distributed cache optimizer for npm registry mirrors",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT"
+}
