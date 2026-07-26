@@ -49,9 +49,67 @@ export class ProductoService {
     return lista;
   }
 
+  /**
+   * Productos que se muestran en la portada ("Productos destacados").
+   *
+   * Por ahora: los productos disponibles (activos y con stock), priorizando los
+   * que estén marcados como `destacado`. Si ninguno está marcado, se muestran
+   * los más recientes para que la sección nunca quede vacía.
+   *
+   * A futuro se podrá cambiar el criterio de la portada por: mejor calificados,
+   * lo más comprado, lo más pedido o lo más consultado. Ver `portadaRanking()`.
+   */
   async destacados(): Promise<Producto[]> {
-    const lista = await this.listarActivos();
-    return lista.filter((p) => p.destacado).slice(0, 8);
+    const activos = await this.listarActivos();
+    // "Disponible" = activo y con stock. Si el filtro de stock lo dejara vacío,
+    // caemos a todos los activos para no ocultar la sección.
+    const disponibles = activos.filter((p) => p.stock > 0);
+    const base = disponibles.length > 0 ? disponibles : activos;
+    const marcados = base.filter((p) => p.destacado);
+    return (marcados.length > 0 ? marcados : base).slice(0, 8);
+  }
+
+  /**
+   * (Preparado para el futuro — aún no se usa en la portada.)
+   *
+   * Devuelve los productos ordenados según distintos criterios de popularidad.
+   * Cada criterio necesita datos adicionales en la base de datos:
+   *
+   *  - 'calificacion' → columna `calificacion_promedio` en `productos`
+   *                     (o una vista que promedie una tabla de reseñas).
+   *  - 'comprado'     → suma de `items_pedido.cantidad` por producto
+   *                     (idealmente una vista/RPC `productos_mas_vendidos`).
+   *  - 'pedido'       → veces que el producto se agregó al carrito.
+   *  - 'consultado'   → veces consultado por WhatsApp / vistas de detalle.
+   *
+   * Mientras esas columnas/vistas no existan, esto cae al orden por defecto
+   * (más recientes) para no romper la portada.
+   */
+  async portadaRanking(
+    criterio: 'calificacion' | 'comprado' | 'pedido' | 'consultado',
+    limite = 8,
+  ): Promise<Producto[]> {
+    if (this.sb.habilitado) {
+      const columnaOrden: Record<typeof criterio, string> = {
+        calificacion: 'calificacion_promedio',
+        comprado: 'total_vendido',
+        pedido: 'total_pedido',
+        consultado: 'total_consultado',
+      };
+      const columna = columnaOrden[criterio];
+      // La columna todavía no existe en el esquema; intentamos ordenar por ella
+      // y, si Supabase devuelve error, caemos al listado por defecto.
+      const { data, error } = await this.sb.client
+        .from('productos')
+        .select('*, categoria:categorias(*)')
+        .eq('activo', true)
+        .gt('stock', 0)
+        .order(columna, { ascending: false })
+        .limit(limite);
+      if (!error && data) return data as Producto[];
+    }
+    // Fallback: disponibles más recientes.
+    return this.destacados();
   }
 
   async obtener(id: string): Promise<Producto | null> {

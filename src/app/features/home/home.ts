@@ -170,11 +170,17 @@ import { ProductoSkeleton } from '../../shared/components/producto-skeleton';
         </header>
 
         <div class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-          @for (producto of destacados(); track producto.id) {
-            <app-producto-card [producto]="producto" />
-          } @empty {
+          @if (cargando()) {
             @for (i of [1, 2, 3, 4]; track i) {
               <app-producto-skeleton />
+            }
+          } @else {
+            @for (producto of destacados(); track producto.id) {
+              <app-producto-card [producto]="producto" />
+            } @empty {
+              <p class="col-span-full py-8 text-center text-stone-500">
+                Aún no hay productos disponibles. ¡Vuelve pronto!
+              </p>
             }
           }
         </div>
@@ -319,6 +325,7 @@ export class Home {
   readonly categorias = signal<Categoria[]>([]);
   readonly destacados = signal<Producto[]>([]);
   readonly lanas = signal<Lana[]>([]);
+  readonly cargando = signal(true);
 
   private readonly whatsapp = environment.contacto.whatsapp;
   readonly urlWhatsappPedido = `https://wa.me/${this.whatsapp}?text=Hola,%20quiero%20hacer%20un%20pedido%20personalizado`;
@@ -353,7 +360,10 @@ export class Home {
   constructor() {
     // Registrado como tarea pendiente para que el SSR espere los datos
     const listo = this.tareas.add();
-    void this.cargar().finally(() => listo());
+    void this.cargar().finally(() => {
+      this.cargando.set(false);
+      listo();
+    });
   }
 
   private async cargar(): Promise<void> {
