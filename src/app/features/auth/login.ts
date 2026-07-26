@@ -87,33 +87,37 @@ import { Logo } from '../../shared/components/logo';
           </button>
         </form>
 
-        <div class="my-5 flex items-center gap-3 text-xs text-stone-400">
-          <span class="h-px flex-1 bg-stone-200"></span>
-          o continúa con
-          <span class="h-px flex-1 bg-stone-200"></span>
-        </div>
+        <!-- Login con Google: oculto hasta configurar el proveedor en Supabase +
+             Google Cloud Console. Para reactivarlo, pon mostrarGoogle = true. -->
+        @if (mostrarGoogle) {
+          <div class="my-5 flex items-center gap-3 text-xs text-stone-400">
+            <span class="h-px flex-1 bg-stone-200"></span>
+            o continúa con
+            <span class="h-px flex-1 bg-stone-200"></span>
+          </div>
 
-        <button type="button" class="btn-outline w-full !py-3" (click)="conGoogle()">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="#4285F4"
-              d="M23.5 12.3c0-.9-.1-1.5-.3-2.2H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.02.15 3.5 2.7.24.02c2.2-2 3.5-5 3.5-8.6z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.1 0-5.8-2.1-6.7-5l-.14.01-3.6 2.8-.05.13C3.4 21.3 7.4 24 12 24z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.3 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.6.4-2.4l-.01-.16-3.7-2.8-.12.06C.5 8.3 0 10.1 0 12s.5 3.7 1.4 5.3l3.9-2.9z"
-            />
-            <path
-              fill="#EB4335"
-              d="M12 4.6c2.2 0 3.7 1 4.6 1.8l3.3-3.2C17.9 1.2 15.2 0 12 0 7.4 0 3.4 2.7 1.4 6.7l3.9 2.9c1-2.9 3.6-5 6.7-5z"
-            />
-          </svg>
-          Continuar con Google
-        </button>
+          <button type="button" class="btn-outline w-full !py-3" (click)="conGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.9-.1-1.5-.3-2.2H12v4.5h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.02.15 3.5 2.7.24.02c2.2-2 3.5-5 3.5-8.6z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.1 0-5.8-2.1-6.7-5l-.14.01-3.6 2.8-.05.13C3.4 21.3 7.4 24 12 24z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.3 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.6.4-2.4l-.01-.16-3.7-2.8-.12.06C.5 8.3 0 10.1 0 12s.5 3.7 1.4 5.3l3.9-2.9z"
+              />
+              <path
+                fill="#EB4335"
+                d="M12 4.6c2.2 0 3.7 1 4.6 1.8l3.3-3.2C17.9 1.2 15.2 0 12 0 7.4 0 3.4 2.7 1.4 6.7l3.9 2.9c1-2.9 3.6-5 6.7-5z"
+              />
+            </svg>
+            Continuar con Google
+          </button>
+        }
 
         <p class="mt-6 text-center text-sm text-stone-600">
           ¿No tienes cuenta?
@@ -135,6 +139,8 @@ export class Login {
   readonly supabaseActivo = inject(SupabaseService).habilitado;
   readonly enviando = signal(false);
   readonly verPassword = signal(false);
+  /** Pon en true cuando el proveedor Google esté configurado en Supabase. */
+  readonly mostrarGoogle = false;
 
   readonly formulario = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
