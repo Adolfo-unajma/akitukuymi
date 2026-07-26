@@ -6,6 +6,8 @@ export interface OpcionesConfirmacion {
   textoConfirmar?: string;
   textoCancelar?: string;
   peligroso?: boolean;
+  /** Oculta el botón de cancelar: úsalo para avisos informativos (un solo botón). */
+  soloAceptar?: boolean;
 }
 
 interface EstadoConfirmacion extends OpcionesConfirmacion {

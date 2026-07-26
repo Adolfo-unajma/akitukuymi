@@ -25,9 +25,11 @@ import { ConfirmacionService } from '../../core/services/confirmacion.service';
             </div>
           </div>
           <div class="mt-6 flex justify-end gap-3">
-            <button type="button" class="btn-outline" (click)="servicio.responder(false)">
-              {{ dialogo.textoCancelar ?? 'Cancelar' }}
-            </button>
+            @if (!dialogo.soloAceptar) {
+              <button type="button" class="btn-outline" (click)="servicio.responder(false)">
+                {{ dialogo.textoCancelar ?? 'Cancelar' }}
+              </button>
+            }
             <button
               type="button"
               [class]="dialogo.peligroso ? 'btn-danger' : 'btn-primary'"

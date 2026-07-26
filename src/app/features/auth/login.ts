@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Logo } from '../../shared/components/logo';
@@ -87,16 +88,20 @@ import { Logo } from '../../shared/components/logo';
           </button>
         </form>
 
-        <!-- Login con Google: oculto hasta configurar el proveedor en Supabase +
-             Google Cloud Console. Para reactivarlo, pon mostrarGoogle = true. -->
-        @if (mostrarGoogle) {
-          <div class="my-5 flex items-center gap-3 text-xs text-stone-400">
-            <span class="h-px flex-1 bg-stone-200"></span>
-            o continúa con
-            <span class="h-px flex-1 bg-stone-200"></span>
-          </div>
+        <!-- Login con Google: el proveedor aún no está configurado (Supabase +
+             Google Cloud Console). Mientras tanto, al pulsar se muestra un aviso.
+             Cuando esté listo: googleListo = true para usar el login real. -->
+        <div class="my-5 flex items-center gap-3 text-xs text-stone-400">
+          <span class="h-px flex-1 bg-stone-200"></span>
+          o continúa con
+          <span class="h-px flex-1 bg-stone-200"></span>
+        </div>
 
-          <button type="button" class="btn-outline w-full !py-3" (click)="conGoogle()">
+        <button
+          type="button"
+          class="btn-outline w-full !py-3"
+          (click)="googleListo ? conGoogle() : avisarGoogleProximamente()"
+        >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 fill="#4285F4"
@@ -117,7 +122,6 @@ import { Logo } from '../../shared/components/logo';
             </svg>
             Continuar con Google
           </button>
-        }
 
         <p class="mt-6 text-center text-sm text-stone-600">
           ¿No tienes cuenta?
@@ -136,11 +140,13 @@ export class Login {
   private readonly ruta = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
 
+  private readonly confirmacion = inject(ConfirmacionService);
+
   readonly supabaseActivo = inject(SupabaseService).habilitado;
   readonly enviando = signal(false);
   readonly verPassword = signal(false);
-  /** Pon en true cuando el proveedor Google esté configurado en Supabase. */
-  readonly mostrarGoogle = false;
+  /** Pon en true cuando el proveedor Google esté configurado (Supabase + Google Cloud). */
+  readonly googleListo = false;
 
   readonly formulario = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -172,6 +178,17 @@ export class Login {
     } finally {
       this.enviando.set(false);
     }
+  }
+
+  /** Aviso temporal mientras el login con Google no está configurado. */
+  avisarGoogleProximamente(): void {
+    void this.confirmacion.pedir({
+      titulo: 'Muy pronto',
+      mensaje:
+        'Estamos trabajando en el acceso con Google. Por ahora puedes ingresar con tu correo y contraseña. ¡Gracias por tu paciencia!',
+      textoConfirmar: 'Entendido',
+      soloAceptar: true,
+    });
   }
 
   async conGoogle(): Promise<void> {
