@@ -1,11 +1,58 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Logo } from '../../shared/components/logo';
+import {
+  ETIQUETA_DOCUMENTO,
+  TIPOS_DOCUMENTO,
+  TipoDocumento,
+  documentoValido,
+  emailValido,
+  esTipoDocumentoValido,
+  evaluarPassword,
+  fortalezaPassword,
+  nombreValido,
+  normalizarDocumento,
+  normalizarEmail,
+  normalizarNombre,
+  normalizarTelefonoPe,
+} from '../../core/validacion';
+
+// ── Validadores reactivos apoyados en las funciones puras de validacion.ts ──
+
+function validarNombre(control: AbstractControl): ValidationErrors | null {
+  const valor = (control.value ?? '') as string;
+  return valor && !nombreValido(valor) ? { nombre: true } : null;
+}
+
+function validarEmail(control: AbstractControl): ValidationErrors | null {
+  const valor = (control.value ?? '') as string;
+  return valor && !emailValido(valor) ? { email: true } : null;
+}
+
+function validarTelefono(control: AbstractControl): ValidationErrors | null {
+  const valor = (control.value ?? '') as string;
+  return valor && normalizarTelefonoPe(valor) === null ? { telefono: true } : null;
+}
+
+// Valida el número de documento según el tipo seleccionado (validador de grupo).
+function validarDocumento(grupo: AbstractControl): ValidationErrors | null {
+  const tipo = grupo.get('tipo_documento')?.value as string;
+  const numero = (grupo.get('numero_documento')?.value ?? '') as string;
+  if (!numero) return null; // "required" ya lo cubre
+  if (!esTipoDocumentoValido(tipo)) return null;
+  return documentoValido(tipo, normalizarDocumento(numero)) ? null : { documento: true };
+}
 
 @Component({
   selector: 'app-registro',
@@ -27,7 +74,7 @@ import { Logo } from '../../shared/components/logo';
               <label class="label" for="nombre">Nombres</label>
               <input id="nombre" formControlName="nombre" class="input" placeholder="María" />
               @if (invalido('nombre')) {
-                <p class="error-text">Ingresa tu nombre</p>
+                <p class="error-text">Solo letras (2–60), sin números ni símbolos</p>
               }
             </div>
             <div>
@@ -39,28 +86,47 @@ import { Logo } from '../../shared/components/logo';
                 placeholder="Quispe Díaz"
               />
               @if (invalido('apellidos')) {
-                <p class="error-text">Ingresa tus apellidos</p>
+                <p class="error-text">Solo letras (2–60), sin números ni símbolos</p>
               }
             </div>
           </div>
 
+          <div>
+            <label class="label" for="telefono">Celular</label>
+            <input
+              id="telefono"
+              formControlName="telefono"
+              class="input"
+              inputmode="tel"
+              placeholder="977 000 000"
+              autocomplete="tel"
+            />
+            @if (invalido('telefono')) {
+              <p class="error-text">Celular peruano inválido (9 dígitos, empieza en 9)</p>
+            }
+          </div>
+
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label class="label" for="telefono">Celular</label>
-              <input
-                id="telefono"
-                formControlName="telefono"
-                class="input"
-                placeholder="977 000 000"
-                autocomplete="tel"
-              />
-              @if (invalido('telefono')) {
-                <p class="error-text">Ingresa un celular válido (9 dígitos)</p>
-              }
+              <label class="label" for="tipo_documento">Tipo de documento</label>
+              <select id="tipo_documento" formControlName="tipo_documento" class="input">
+                @for (t of tipos; track t) {
+                  <option [value]="t">{{ etiqueta(t) }}</option>
+                }
+              </select>
             </div>
             <div>
-              <label class="label" for="dni">DNI <span class="text-stone-400">(opcional)</span></label>
-              <input id="dni" formControlName="dni" class="input" placeholder="12345678" />
+              <label class="label" for="numero_documento">Número</label>
+              <input
+                id="numero_documento"
+                formControlName="numero_documento"
+                class="input"
+                [placeholder]="placeholderDocumento()"
+                autocomplete="off"
+              />
+              @if (numeroDocumentoInvalido()) {
+                <p class="error-text">{{ ayudaDocumento() }}</p>
+              }
             </div>
           </div>
 
@@ -89,7 +155,7 @@ import { Logo } from '../../shared/components/logo';
                 [type]="verPassword() ? 'text' : 'password'"
                 formControlName="password"
                 class="w-full bg-transparent outline-none placeholder:text-stone-400"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 8 caracteres, letras y números"
                 autocomplete="new-password"
               />
               <button
@@ -101,8 +167,25 @@ import { Logo } from '../../shared/components/logo';
                 <lucide-icon [name]="verPassword() ? 'eye-off' : 'eye'" [size]="18" />
               </button>
             </div>
-            @if (invalido('password')) {
-              <p class="error-text">La contraseña debe tener al menos 8 caracteres</p>
+
+            <!-- Medidor de fortaleza -->
+            @if (passwordValor()) {
+              <div class="mt-2 flex items-center gap-2">
+                <div class="flex flex-1 gap-1">
+                  @for (i of [0, 1, 2, 3]; track i) {
+                    <span
+                      class="h-1.5 flex-1 rounded-full transition-colors"
+                      [class]="i < fortaleza() ? colorFortaleza() : 'bg-stone-200'"
+                    ></span>
+                  }
+                </div>
+                <span class="text-xs font-medium" [class]="textoColorFortaleza()">
+                  {{ etiquetaFortaleza() }}
+                </span>
+              </div>
+            }
+            @if (invalido('password') && mensajePassword()) {
+              <p class="error-text">{{ mensajePassword() }}</p>
             }
           </div>
 
@@ -149,26 +232,112 @@ export class Registro {
   private readonly fb = inject(FormBuilder);
   private readonly supabaseActivo = inject(SupabaseService).habilitado;
 
+  readonly tipos = TIPOS_DOCUMENTO;
   readonly enviando = signal(false);
   readonly verPassword = signal(false);
 
   readonly formulario = this.fb.nonNullable.group(
     {
-      nombre: ['', Validators.required],
-      apellidos: ['', Validators.required],
-      telefono: ['', [Validators.required, Validators.pattern(/^\d{9}$/)]],
-      dni: [''],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      nombre: ['', [Validators.required, validarNombre]],
+      apellidos: ['', [Validators.required, validarNombre]],
+      telefono: ['', [Validators.required, validarTelefono]],
+      tipo_documento: ['DNI' as TipoDocumento, Validators.required],
+      numero_documento: ['', Validators.required],
+      email: ['', [Validators.required, validarEmail]],
+      password: ['', [Validators.required, this.validarPassword.bind(this)]],
       confirmar: ['', Validators.required],
     },
     {
-      validators: (grupo) =>
-        grupo.get('password')?.value === grupo.get('confirmar')?.value
-          ? null
-          : { distintas: true },
+      validators: [
+        (grupo: AbstractControl) =>
+          grupo.get('password')?.value === grupo.get('confirmar')?.value ? null : { distintas: true },
+        validarDocumento,
+      ],
     },
   );
+
+  // Señales reactivas para el medidor y el placeholder dinámico del documento.
+  private readonly passwordCtrl = this.formulario.controls.password;
+  readonly passwordValor = signal(this.passwordCtrl.value);
+  readonly tipoDocValor = signal(this.formulario.controls.tipo_documento.value);
+
+  readonly fortaleza = computed(() => fortalezaPassword(this.passwordValor()));
+  readonly mensajePassword = computed(() => evaluarPassword(this.passwordValor()).error);
+
+  constructor() {
+    this.passwordCtrl.valueChanges.subscribe((v) => this.passwordValor.set(v ?? ''));
+    this.formulario.controls.tipo_documento.valueChanges.subscribe((t) =>
+      this.tipoDocValor.set(t as TipoDocumento),
+    );
+    // Revalida el número cuando cambia el tipo de documento.
+    this.formulario.controls.tipo_documento.valueChanges.subscribe(() =>
+      this.formulario.controls.numero_documento.updateValueAndValidity({ emitEvent: false }),
+    );
+  }
+
+  /** Validador de contraseña con contexto (nombre/apellidos/correo del form). */
+  private validarPassword(control: AbstractControl): ValidationErrors | null {
+    const valor = (control.value ?? '') as string;
+    if (!valor) return null;
+    const grupo = control.parent;
+    const resultado = evaluarPassword(valor, {
+      nombre: grupo?.get('nombre')?.value,
+      apellidos: grupo?.get('apellidos')?.value,
+      email: grupo?.get('email')?.value,
+    });
+    return resultado.valida ? null : { password: resultado.error };
+  }
+
+  etiqueta(t: TipoDocumento): string {
+    return ETIQUETA_DOCUMENTO[t];
+  }
+
+  placeholderDocumento(): string {
+    return this.tipoDocValor() === 'DNI' ? '12345678' : 'ABC123456';
+  }
+
+  ayudaDocumento(): string {
+    switch (this.tipoDocValor()) {
+      case 'DNI':
+        return 'El DNI debe tener 8 dígitos';
+      case 'CE':
+        return 'El carné debe tener 9–12 caracteres';
+      default:
+        return 'El pasaporte debe tener 6–12 caracteres';
+    }
+  }
+
+  numeroDocumentoInvalido(): boolean {
+    const ctrl = this.formulario.controls.numero_documento;
+    return (
+      (ctrl.touched && ctrl.hasError('required')) ||
+      (!!ctrl.value && this.formulario.hasError('documento') && ctrl.touched)
+    );
+  }
+
+  colorFortaleza(): string {
+    const f = this.fortaleza();
+    if (f <= 1) return 'bg-red-400';
+    if (f === 2) return 'bg-amber-400';
+    if (f === 3) return 'bg-lime-500';
+    return 'bg-green-600';
+  }
+
+  textoColorFortaleza(): string {
+    const f = this.fortaleza();
+    if (f <= 1) return 'text-red-500';
+    if (f === 2) return 'text-amber-600';
+    if (f === 3) return 'text-lime-600';
+    return 'text-green-700';
+  }
+
+  etiquetaFortaleza(): string {
+    const f = this.fortaleza();
+    if (f <= 1) return 'Débil';
+    if (f === 2) return 'Aceptable';
+    if (f === 3) return 'Buena';
+    return 'Fuerte';
+  }
 
   invalido(campo: string): boolean {
     const control = this.formulario.get(campo);
@@ -182,7 +351,17 @@ export class Registro {
     }
     this.enviando.set(true);
     try {
-      const { confirmar: _c, ...datos } = this.formulario.getRawValue();
+      const bruto = this.formulario.getRawValue();
+      // Normalización final antes de enviar (nunca se confía solo en el input).
+      const datos = {
+        nombre: normalizarNombre(bruto.nombre),
+        apellidos: normalizarNombre(bruto.apellidos),
+        telefono: normalizarTelefonoPe(bruto.telefono) ?? bruto.telefono,
+        tipo_documento: bruto.tipo_documento,
+        dni: normalizarDocumento(bruto.numero_documento),
+        email: normalizarEmail(bruto.email),
+        password: bruto.password,
+      };
       await this.auth.registrar(datos);
       if (this.supabaseActivo) {
         this.toast.exito('Cuenta creada. Revisa tu correo para confirmarla');

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Perfil } from '../models';
 import { USUARIOS_DEMO, UsuarioDemo } from '../data/demo-data';
 import { assertEscritura } from '../solo-lectura';
+import { normalizarEmail } from '../validacion';
 import { DemoDbService } from './demo-db.service';
 import { SupabaseService } from './supabase.service';
 
@@ -12,6 +13,8 @@ export interface DatosRegistro {
   nombre: string;
   apellidos: string;
   telefono: string;
+  tipo_documento?: string;
+  /** Número de documento ya normalizado. */
   dni?: string;
   email: string;
   password: string;
@@ -94,18 +97,63 @@ export class AuthService {
   // ───────────────────────────── API pública ─────────────────────────────
 
   async login(email: string, password: string): Promise<void> {
+    const correo = normalizarEmail(email);
     if (this.sb.habilitado) {
-      const { data, error } = await this.sb.client.auth.signInWithPassword({ email, password });
-      if (error) throw new Error('Correo o contraseña incorrectos');
+      // Rate limiting server-side por correo (ver SECURITY.md). Si el RPC aún no
+      // está desplegado, `verificarBloqueoLogin` devuelve null y no bloquea.
+      const bloqueo = await this.verificarBloqueoLogin(correo);
+      if (bloqueo?.bloqueado) {
+        const min = Math.max(1, Math.ceil((bloqueo.segundos_restantes ?? 0) / 60));
+        throw new Error(
+          `Demasiados intentos fallidos. Vuelve a intentarlo en ${min} minuto${min > 1 ? 's' : ''}.`,
+        );
+      }
+
+      const { data, error } = await this.sb.client.auth.signInWithPassword({
+        email: correo,
+        password,
+      });
+      // Se registra el intento (éxito o fallo) para el conteo de bloqueo.
+      await this.registrarIntentoLogin(correo, !error);
+      // Mensaje único: no revela si el correo existe.
+      if (error || !data.user) throw new Error('Correo o contraseña incorrectos');
       await this.cargarPerfil(data.user.id);
       return;
     }
     const encontrado = this.usuariosDemo().find(
-      (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password,
+      (u) => u.email.toLowerCase() === correo && u.password === password,
     );
     if (!encontrado) throw new Error('Correo o contraseña incorrectos');
     const { password: _omitida, ...perfil } = encontrado;
     this.guardarSesionDemo(perfil);
+  }
+
+  /**
+   * Consulta el estado de bloqueo por intentos fallidos. Falla-abierto: si el
+   * RPC no existe o hay error de red, devuelve null (no bloquea) para no dejar
+   * a los usuarios fuera. La protección real vive en el servidor (RLS + RPC).
+   */
+  private async verificarBloqueoLogin(
+    correo: string,
+  ): Promise<{ bloqueado: boolean; segundos_restantes?: number } | null> {
+    try {
+      const { data, error } = await this.sb.client.rpc('verificar_bloqueo_login', {
+        p_email: correo,
+      });
+      if (error || !data) return null;
+      return data as { bloqueado: boolean; segundos_restantes?: number };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Registra el resultado de un intento de login. Silencioso si el RPC falta. */
+  private async registrarIntentoLogin(correo: string, exito: boolean): Promise<void> {
+    try {
+      await this.sb.client.rpc('registrar_intento_login', { p_email: correo, p_exito: exito });
+    } catch {
+      /* RPC aún no desplegado: no interrumpir el flujo de login */
+    }
   }
 
   async loginConGoogle(): Promise<void> {
@@ -131,13 +179,14 @@ export class AuthService {
     assertEscritura();
     if (this.sb.habilitado) {
       const { error } = await this.sb.client.auth.signUp({
-        email: datos.email,
+        email: normalizarEmail(datos.email),
         password: datos.password,
         options: {
           data: {
             nombre: datos.nombre,
             apellidos: datos.apellidos,
             telefono: datos.telefono,
+            tipo_documento: datos.tipo_documento ?? null,
             dni: datos.dni ?? null,
           },
         },
@@ -160,16 +209,18 @@ export class AuthService {
       }
       return;
     }
+    const correo = normalizarEmail(datos.email);
     const usuarios = this.usuariosDemo();
-    if (usuarios.some((u) => u.email.toLowerCase() === datos.email.trim().toLowerCase())) {
+    if (usuarios.some((u) => u.email.toLowerCase() === correo)) {
       throw new Error('Este correo ya está registrado');
     }
     const nuevo: UsuarioDemo = {
       id: this.demoDb.uid(),
-      email: datos.email.trim(),
+      email: correo,
       nombre: datos.nombre,
       apellidos: datos.apellidos,
       telefono: datos.telefono,
+      tipo_documento: datos.tipo_documento as UsuarioDemo['tipo_documento'],
       dni: datos.dni,
       rol: 'cliente',
       password: datos.password,
