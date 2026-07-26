@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerBrandWhatsapp } from '@ng-icons/tabler-icons';
 import { LucideAngularModule } from 'lucide-angular';
-import { environment } from '../../../environments/environment';
+import { MENSAJES_WHATSAPP, whatsappUrl } from '../../core/whatsapp';
 import { Categoria, Lana, Producto } from '../../core/models';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { LanaService } from '../../core/services/lana.service';
@@ -327,10 +327,9 @@ export class Home {
   readonly lanas = signal<Lana[]>([]);
   readonly cargando = signal(true);
 
-  private readonly whatsapp = environment.contacto.whatsapp;
-  readonly urlWhatsappPedido = `https://wa.me/${this.whatsapp}?text=Hola,%20quiero%20hacer%20un%20pedido%20personalizado`;
-  readonly urlWhatsappLanas = `https://wa.me/${this.whatsapp}?text=Hola,%20quiero%20pedir%20lanas`;
-  readonly urlWhatsappConsulta = `https://wa.me/${this.whatsapp}?text=Hola,%20tengo%20una%20consulta`;
+  readonly urlWhatsappPedido = whatsappUrl(MENSAJES_WHATSAPP.pedidoPersonalizado);
+  readonly urlWhatsappLanas = whatsappUrl(MENSAJES_WHATSAPP.lanas);
+  readonly urlWhatsappConsulta = whatsappUrl(MENSAJES_WHATSAPP.consulta);
 
   readonly pasos = [
     {

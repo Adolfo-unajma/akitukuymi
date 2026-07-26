@@ -4,8 +4,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerBrandWhatsapp } from '@ng-icons/tabler-icons';
 import { LucideAngularModule } from 'lucide-angular';
-import { environment } from '../../../environments/environment';
 import { Producto, precioVenta } from '../../core/models';
+import { whatsappProducto } from '../../core/whatsapp';
 import { CarritoService } from '../../core/services/carrito.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -215,7 +215,6 @@ export class ProductoDetalle {
   }
 
   urlWhatsapp(p: Producto): string {
-    const texto = encodeURIComponent(`Hola, me interesa "${p.nombre}" que vi en la tienda`);
-    return `https://wa.me/${environment.contacto.whatsapp}?text=${texto}`;
+    return whatsappProducto(p.nombre);
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@ng-icons/tabler-icons';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
+import { MENSAJES_WHATSAPP, whatsappUrl } from '../../core/whatsapp';
 import { Logo } from './logo';
 
 @Component({
@@ -98,7 +99,7 @@ import { Logo } from './logo';
             </li>
             <li>
               <a
-                [href]="'https://wa.me/' + contacto.whatsapp + '?text=Hola,%20tengo%20una%20consulta'"
+                [href]="urlWhatsappConsulta"
                 target="_blank"
                 rel="noopener"
                 class="enlace"
@@ -164,6 +165,7 @@ export class Footer {
 
   readonly contacto = environment.contacto;
   readonly anio = new Date().getFullYear();
+  readonly urlWhatsappConsulta = whatsappUrl(MENSAJES_WHATSAPP.consulta);
 
   /** Baja a una sección del inicio sin dejar #fragmento en la URL */
   async irASeccion(id: string): Promise<void> {
